@@ -39,6 +39,54 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFFA0AAA3), fontSize: 14),
+      prefixIcon: Icon(icon, size: 19, color: _muted),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFFE2E8E3)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFFE2E8E3)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: _green, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFFC44C4C)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(13),
+        borderSide: const BorderSide(color: Color(0xFFC44C4C), width: 1.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,24 +141,84 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Welcome back',
-                          style: TextStyle(
-                            color: _ink,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.7,
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Welcome back',
+                            style: TextStyle(
+                              color: _ink,
+                              fontSize: 25,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.7,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 7),
-                        Text(
-                          'Sign in to pick up where you left off.',
-                          style: TextStyle(color: _muted, fontSize: 14),
-                        ),
-                      ],
+                          const SizedBox(height: 7),
+                          const Text(
+                            'Sign in to pick up where you left off.',
+                            style: TextStyle(color: _muted, fontSize: 14),
+                          ),
+                          const SizedBox(height: 27),
+                          const _FieldLabel('Email address'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.email],
+                            decoration: _inputDecoration(
+                              hint: 'you@example.com',
+                              icon: Icons.mail_outline_rounded,
+                            ),
+                            validator: (value) {
+                              final email = value?.trim() ?? '';
+                              if (email.isEmpty) return 'Enter your email';
+                              if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                  .hasMatch(email)) {
+                                return 'Enter a valid email address';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 19),
+                          const _FieldLabel('Password'),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            key: const ValueKey('password-field'),
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.password],
+                            decoration: _inputDecoration(
+                              hint: 'Enter your password',
+                              icon: Icons.lock_outline_rounded,
+                              suffixIcon: IconButton(
+                                tooltip: _obscurePassword
+                                    ? 'Show password'
+                                    : 'Hide password',
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  size: 19,
+                                  color: _muted,
+                                ),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Enter your password';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -118,6 +226,24 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: _ink,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
